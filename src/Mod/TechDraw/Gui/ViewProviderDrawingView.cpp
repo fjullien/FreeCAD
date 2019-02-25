@@ -203,6 +203,7 @@ void ViewProviderDrawingView::finishRestoring()
 
 void ViewProviderDrawingView::updateData(const App::Property* prop)
 {
+	Base::Console().Log("--------> ViewProviderDrawingView::updateData\n");
     if (prop == &(getViewObject()->Rotation) ||
         prop == &(getViewObject()->X)  ||
         prop == &(getViewObject()->Y) ) {

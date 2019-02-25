@@ -61,6 +61,7 @@
 #include <Mod/TechDraw/App/DrawProjGroupItem.h>
 #include <Mod/TechDraw/App/DrawProjGroup.h>
 #include <Mod/TechDraw/App/DrawViewDimension.h>
+#include <Mod/TechDraw/App/DrawViewBalloon.h>
 #include <Mod/TechDraw/App/DrawViewClip.h>
 #include <Mod/TechDraw/App/DrawViewAnnotation.h>
 #include <Mod/TechDraw/App/DrawViewSymbol.h>
@@ -676,6 +677,116 @@ bool CmdTechDrawAnnotation::isActive(void)
     return DrawGuiUtil::needPage(this);
 }
 
+//===========================================================================
+// TechDraw_NewBalloon
+//===========================================================================
+
+//! common checks of Selection for Dimension commands
+//non-empty selection, no more than maxObjs selected and at least 1 DrawingPage exists
+bool _checkSelectionBalloon(Gui::Command* cmd, unsigned maxObjs) {
+    std::vector<Gui::SelectionObject> selection = cmd->getSelection().getSelectionEx();
+    if (selection.size() == 0) {
+        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect selection"),
+                             QObject::tr("Select an object first"));
+        return false;
+    }
+
+    const std::vector<std::string> SubNames = selection[0].getSubNames();
+    if (SubNames.size() > maxObjs){
+        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect selection"),
+            QObject::tr("Too many objects selected"));
+        return false;
+    }
+
+    std::vector<App::DocumentObject*> pages = cmd->getDocument()->getObjectsOfType(TechDraw::DrawPage::getClassTypeId());
+    if (pages.empty()){
+        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect selection"),
+            QObject::tr("Create a page first."));
+        return false;
+    }
+    return true;
+}
+
+bool _checkDrawViewPartBalloon(Gui::Command* cmd) {
+    std::vector<Gui::SelectionObject> selection = cmd->getSelection().getSelectionEx();
+    auto objFeat( dynamic_cast<TechDraw::DrawViewPart *>(selection[0].getObject()) );
+    if( !objFeat ) {
+        QMessageBox::warning( Gui::getMainWindow(),
+                              QObject::tr("Incorrect selection"),
+                              QObject::tr("No View of a Part in selection.") );
+        return false;
+    }
+    return true;
+}
+
+DEF_STD_CMD_A(CmdTechDrawNewBalloon);
+
+CmdTechDrawNewBalloon::CmdTechDrawNewBalloon()
+  : Command("TechDraw_NewBalloon")
+{
+    sAppModule      = "TechDraw";
+    sGroup          = QT_TR_NOOP("TechDraw");
+    sMenuText       = QT_TR_NOOP("Insert a new balloon");
+    sToolTipText    = QT_TR_NOOP("Insert a new balloon");
+    sWhatsThis      = "TechDraw_Balloon";
+    sStatusTip      = sToolTipText;
+    sPixmap         = "TechDraw_Balloon";
+}
+
+void CmdTechDrawNewBalloon::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    bool result = _checkSelectionBalloon(this,1);
+    if (!result)
+        return;
+    result = _checkDrawViewPartBalloon(this);
+    if (!result)
+        return;
+
+    std::string FeatName = getUniqueObjectName("Balloon");
+
+    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
+    TechDraw::DrawViewPart * objFeat = 0;
+    std::vector<std::string> SubNames;
+
+    std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
+    for (; itSel != selection.end(); itSel++)  {
+        if ((*itSel).getObject()->isDerivedFrom(TechDraw::DrawViewPart::getClassTypeId())) {
+            objFeat = static_cast<TechDraw::DrawViewPart*> ((*itSel).getObject());
+            SubNames = (*itSel).getSubNames();
+        }
+    }
+    TechDraw::DrawPage* page = objFeat->findParentPage();
+    std::string PageName = page->getNameInDocument();
+    TechDraw::DrawViewBalloon *balloon = 0;
+
+    openCommand("Create Balloon");
+    doCommand(Doc,"App.activeDocument().addObject('TechDraw::DrawViewBalloon','%s')",FeatName.c_str());
+    doCommand(Doc,"App.activeDocument().%s.addView(App.activeDocument().%s)",PageName.c_str(),FeatName.c_str());
+
+    balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(getDocument()->getObject(FeatName.c_str()));
+    if (!balloon) {
+        throw Base::TypeError("CmdTechDrawNewBalloon - balloon not found\n");
+    }
+    //dim->References2D.setValues(objs, subs);
+
+    //updateActive();
+
+    commitCommand();
+    balloon->recomputeFeature();
+
+    //Horrible hack to force Tree update
+    double x = objFeat->X.getValue();
+    objFeat->X.setValue(x);
+
+}
+
+bool CmdTechDrawNewBalloon::isActive(void)
+{
+    bool havePage = DrawGuiUtil::needPage(this);
+    bool haveView = DrawGuiUtil::needView(this);
+    return (havePage && haveView);
+}
 
 //===========================================================================
 // TechDraw_Clip
@@ -1225,4 +1336,5 @@ void CreateTechDrawCommands(void)
     rcCmdMgr.addCommand(new CmdTechDrawDraftView());
     rcCmdMgr.addCommand(new CmdTechDrawArchView());
     rcCmdMgr.addCommand(new CmdTechDrawSpreadsheet());
+    rcCmdMgr.addCommand(new CmdTechDrawNewBalloon());
 }

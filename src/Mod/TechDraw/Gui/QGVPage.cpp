@@ -74,6 +74,7 @@
 #include "TemplateTextField.h"
 #include "QGIViewCollection.h"
 #include "QGIViewDimension.h"
+#include "QGIViewBalloon.h"
 #include "QGIProjGroup.h"
 #include "QGIViewPart.h"
 #include "QGIViewSection.h"
@@ -367,6 +368,38 @@ QGIView * QGVPage::addDrawViewImage(TechDraw::DrawViewImage *view)
 
     addQView(qview);
     return qview;
+}
+
+QGIView * QGVPage::addViewBalloon(TechDraw::DrawViewBalloon *balloon)
+{
+    auto balloonGroup( new QGIViewBalloon );
+
+    auto ourScene( scene() );
+    assert(ourScene);
+    ourScene->addItem(balloonGroup);
+
+    balloonGroup->setViewPartFeature(balloon);
+
+    // Find if it belongs to a parent
+    QGIView *parent = 0;
+    parent = findParent(balloonGroup);
+
+    if(parent) {
+        addBalloonToParent(balloonGroup,parent);
+    }
+
+    return balloonGroup;
+}
+
+void QGVPage::addBalloonToParent(QGIViewBalloon* dim, QGIView* parent)
+{
+    assert(dim);
+    assert(parent);          //blow up if we don't have Dimension or Parent
+    QPointF posRef(0.,0.);
+    QPointF mapPos = dim->mapToItem(parent, posRef);
+    dim->moveBy(-mapPos.x(), -mapPos.y());
+    parent->addToGroup(dim);
+    dim->setZValue(ZVALUE::DIMENSION);
 }
 
 QGIView * QGVPage::addViewDimension(TechDraw::DrawViewDimension *dim)

@@ -296,6 +296,7 @@ QPainterPath QGIViewPart::geomToPainterPath(TechDrawGeometry::BaseGeom *baseGeom
 
 void QGIViewPart::updateView(bool update)
 {
+	Base::Console().Log("-------> QGIViewPart::updateView\n");
     auto start = std::chrono::high_resolution_clock::now();
     auto viewPart( dynamic_cast<TechDraw::DrawViewPart *>(getViewObject()) );
     if( viewPart == nullptr ) {

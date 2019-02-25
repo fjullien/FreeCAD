@@ -41,6 +41,7 @@ class DrawViewClip;
 class DrawViewCollection;
 class DrawViewSpreadsheet;
 class DrawViewImage;
+class DrawViewBalloon;
 }
 
 namespace TechDrawGui
@@ -49,6 +50,7 @@ class QGIView;
 class QGIViewDimension;
 class QGITemplate;
 class ViewProviderPage;
+class QGIViewBalloon;
 
 class TechDrawGuiExport QGVPage : public QGraphicsView
 {
@@ -64,6 +66,7 @@ public:
     void drawBackground(QPainter *p, const QRectF &rect);
 
     QGIView * addViewDimension(TechDraw::DrawViewDimension *dim);
+    QGIView * addViewBalloon(TechDraw::DrawViewBalloon *balloon);
     QGIView * addProjectionGroup(TechDraw::DrawProjGroup *view);
     QGIView * addViewPart(TechDraw::DrawViewPart *part);
     QGIView * addViewSection(TechDraw::DrawViewPart *part);
@@ -80,6 +83,7 @@ public:
     QGIView* getQGIVByName(std::string name);
     QGIView* findParent(QGIView *) const;
 
+    void addBalloonToParent(QGIViewBalloon* dim, QGIView* parent);
     void addDimToParent(QGIViewDimension* dim, QGIView* parent);
 //    const std::vector<QGIView *> & getViews() const { return views; }    //only used in MDIVP
     std::vector<QGIView *> getViews() const;   //only used in MDIVP

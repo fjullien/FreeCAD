@@ -75,6 +75,7 @@
 #include <Mod/TechDraw/App/DrawViewClip.h>
 #include <Mod/TechDraw/App/DrawViewCollection.h>
 #include <Mod/TechDraw/App/DrawViewDimension.h>
+#include <Mod/TechDraw/App/DrawViewBalloon.h>
 #include <Mod/TechDraw/App/DrawViewPart.h>
 #include <Mod/TechDraw/App/DrawViewSection.h>
 #include <Mod/TechDraw/App/DrawViewSpreadsheet.h>
@@ -86,6 +87,7 @@
 #include "QGIView.h"
 #include "QGIViewPart.h"
 #include "QGIViewDimension.h"
+#include "QGIViewBalloon.h"
 #include "QGIViewClip.h"
 #include "QGIVertex.h"
 #include "QGIEdge.h"
@@ -270,6 +272,7 @@ void MDIViewPage::centerOnPage(void)
 
 bool MDIViewPage::attachView(App::DocumentObject *obj)
 {
+	Base::Console().Log("--------> MDIViewPage::attachView\n");
     auto typeId(obj->getTypeId());
 
     QGIView *qview(nullptr);
@@ -288,6 +291,9 @@ bool MDIViewPage::attachView(App::DocumentObject *obj)
 
     } else if (typeId.isDerivedFrom(TechDraw::DrawViewDimension::getClassTypeId()) ) {
         qview = m_view->addViewDimension( static_cast<TechDraw::DrawViewDimension *>(obj) );
+
+    } else if (typeId.isDerivedFrom(TechDraw::DrawViewBalloon::getClassTypeId()) ) {
+        qview = m_view->addViewBalloon( static_cast<TechDraw::DrawViewBalloon *>(obj) );
 
     } else if (typeId.isDerivedFrom(TechDraw::DrawViewAnnotation::getClassTypeId()) ) {
         qview = m_view->addDrawViewAnnotation( static_cast<TechDraw::DrawViewAnnotation *>(obj) );
