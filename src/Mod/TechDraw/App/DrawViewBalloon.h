@@ -46,6 +46,8 @@ public:
     DrawViewBalloon();
     virtual ~DrawViewBalloon();
 
+    App::PropertyLinkSubList       References2D;
+
     short mustExecute() const;
 
     //@{

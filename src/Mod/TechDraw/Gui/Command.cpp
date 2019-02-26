@@ -768,7 +768,14 @@ void CmdTechDrawNewBalloon::activated(int iMsg)
     if (!balloon) {
         throw Base::TypeError("CmdTechDrawNewBalloon - balloon not found\n");
     }
-    //dim->References2D.setValues(objs, subs);
+    
+    std::vector<App::DocumentObject *> objs;
+    std::vector<std::string> subs;
+
+    objs.push_back(objFeat);
+    subs.push_back("dummy");
+
+    balloon->References2D.setValues(objs, subs);
 
     //updateActive();
 

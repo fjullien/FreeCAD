@@ -57,6 +57,7 @@
 #include <Mod/TechDraw/App/DrawSVGTemplate.h>
 #include <Mod/TechDraw/App/DrawParametricTemplate.h>
 #include <Mod/TechDraw/App/DrawViewCollection.h>
+#include <Mod/TechDraw/App/DrawViewBalloon.h>
 #include <Mod/TechDraw/App/DrawViewDimension.h>
 #include <Mod/TechDraw/App/DrawProjGroup.h>
 #include <Mod/TechDraw/App/DrawViewPart.h>
@@ -391,15 +392,15 @@ QGIView * QGVPage::addViewBalloon(TechDraw::DrawViewBalloon *balloon)
     return balloonGroup;
 }
 
-void QGVPage::addBalloonToParent(QGIViewBalloon* dim, QGIView* parent)
+void QGVPage::addBalloonToParent(QGIViewBalloon* balloon, QGIView* parent)
 {
-    assert(dim);
+    assert(balloon);
     assert(parent);          //blow up if we don't have Dimension or Parent
     QPointF posRef(0.,0.);
-    QPointF mapPos = dim->mapToItem(parent, posRef);
-    dim->moveBy(-mapPos.x(), -mapPos.y());
-    parent->addToGroup(dim);
-    dim->setZValue(ZVALUE::DIMENSION);
+    QPointF mapPos = balloon->mapToItem(parent, posRef);
+    balloon->moveBy(-mapPos.x(), -mapPos.y());
+    parent->addToGroup(balloon);
+    balloon->setZValue(ZVALUE::DIMENSION);
 }
 
 QGIView * QGVPage::addViewDimension(TechDraw::DrawViewDimension *dim)
@@ -479,6 +480,24 @@ QGIView * QGVPage::findParent(QGIView *view) const
 
         if(objs.size() > 0) {
             std::vector<App::DocumentObject *> objs = dim->References2D.getValues();
+            // Attach the dimension to the first object's group
+            for(std::vector<QGIView *>::const_iterator it = qviews.begin(); it != qviews.end(); ++it) {
+                if(strcmp((*it)->getViewName(), objs.at(0)->getNameInDocument()) == 0) {
+                    return *it;
+                }
+            }
+        }
+    }
+
+    //If type is balloon we check references first
+    TechDraw::DrawViewBalloon *balloon = 0;
+    balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(myView);
+
+    if(balloon) {
+        std::vector<App::DocumentObject *> objs = balloon->References2D.getValues();
+
+        if(objs.size() > 0) {
+            std::vector<App::DocumentObject *> objs = balloon->References2D.getValues();
             // Attach the dimension to the first object's group
             for(std::vector<QGIView *>::const_iterator it = qviews.begin(); it != qviews.end(); ++it) {
                 if(strcmp((*it)->getViewName(), objs.at(0)->getNameInDocument()) == 0) {
