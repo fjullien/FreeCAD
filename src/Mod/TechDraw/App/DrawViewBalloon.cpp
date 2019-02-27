@@ -70,7 +70,9 @@ PROPERTY_SOURCE(TechDraw::DrawViewBalloon, TechDraw::DrawView)
 
 DrawViewBalloon::DrawViewBalloon(void)
 {
-
+    ADD_PROPERTY_TYPE(References2D,(0,0),"",(App::PropertyType)(App::Prop_None),"Projected Geometry References");
+    References2D.setScope(App::LinkScope::Global);
+    References2D.setStatus(App::Property::Hidden,true);
 
 }
 
@@ -93,6 +95,14 @@ void DrawViewBalloon::onDocumentRestored()
 short DrawViewBalloon::mustExecute() const
 {
 
+}
+
+DrawViewPart* DrawViewBalloon::getViewPart() const
+{
+    if (References2D.getValues().empty()) {
+        return nullptr;
+    }
+    return dynamic_cast<TechDraw::DrawViewPart * >(References2D.getValues().at(0));
 }
 
 App::DocumentObjectExecReturn *DrawViewBalloon::execute(void)

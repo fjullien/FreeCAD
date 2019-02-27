@@ -37,6 +37,8 @@ class Measurement;
 }
 namespace TechDraw {
 
+class DrawViewPart;
+
 class TechDrawExport DrawViewBalloon : public TechDraw::DrawView
 {
     PROPERTY_HEADER(TechDraw::DrawViewBalloon);
@@ -49,6 +51,8 @@ public:
     App::PropertyLinkSubList       References2D;
 
     short mustExecute() const;
+
+    DrawViewPart* getViewPart() const;
 
     //@{
     /// recalculate the Feature
