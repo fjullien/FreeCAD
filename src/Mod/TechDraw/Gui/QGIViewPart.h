@@ -92,6 +92,8 @@ protected:
     void drawViewPart();
     QGIFace* drawFace(TechDrawGeometry::Face* f, int idx);
 
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     TechDraw::DrawHatch* faceIsHatched(int i,std::vector<TechDraw::DrawHatch*> hatchObjs) const;

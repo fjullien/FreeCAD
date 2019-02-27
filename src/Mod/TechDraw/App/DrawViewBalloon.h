@@ -51,6 +51,7 @@ public:
     App::PropertyLinkSubList       References2D;
 
     short mustExecute() const;
+    bool has2DReferences(void) const;
 
     DrawViewPart* getViewPart() const;
 

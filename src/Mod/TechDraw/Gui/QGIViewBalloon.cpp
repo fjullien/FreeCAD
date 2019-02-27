@@ -70,12 +70,21 @@ using namespace TechDrawGui;
 //**************************************************************
 QGIViewBalloon::QGIViewBalloon() :
     hasHover(false),
-    m_lineWidth(0.0),
-    m_obtuse(false)
+    m_lineWidth(0.0)
 {
     setHandlesChildEvents(false);
     setFlag(QGraphicsItem::ItemIsMovable, false);
     setCacheMode(QGraphicsItem::NoCache);
+
+    dimLines = new QGIDimLines();
+    addToGroup(dimLines);
+
+    aHead1 = new QGIArrow();
+    addToGroup(aHead1);
+
+    aHead1->setZValue(ZVALUE::DIMENSION);
+    dimLines->setZValue(ZVALUE::DIMENSION);
+    dimLines->setStyle(Qt::SolidLine);
 
     toggleBorder(false);
     setZValue(ZVALUE::DIMENSION);                    //note: this won't paint dimensions over another View if it stacks
@@ -97,6 +106,24 @@ void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *obj)
     draw();
 }
 
+void QGIViewBalloon::select(bool state)
+{
+    setSelected(state);
+    draw();
+}
+
+void QGIViewBalloon::hover(bool state)
+{
+    hasHover = state;
+    draw();
+}
+
+void QGIViewBalloon::updateView(bool update)
+{
+    Q_UNUSED(update);
+    draw();
+}
+
 void QGIViewBalloon::draw()
 {
     if (!isVisible()) {                                                //should this be controlled by parent ViewPart?
@@ -105,26 +132,47 @@ void QGIViewBalloon::draw()
 
     /*datumLabel->show();*/
     show();
-/*
-    TechDraw::DrawViewBalloon *dim = dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject());
-    if((!dim) ||                                                       //nothing to draw, don't try
-       (!dim->isDerivedFrom(TechDraw::DrawViewBalloon::getClassTypeId())) ||
-       (!dim->has2DReferences()) ) {
-        datumLabel->hide();
+
+    TechDraw::DrawViewBalloon *balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject());
+    if((!balloon) ||                                                       //nothing to draw, don't try
+       (!balloon->isDerivedFrom(TechDraw::DrawViewBalloon::getClassTypeId())) ||
+       (!balloon->has2DReferences()) ) {
+        //datumLabel->hide();
         hide();
         return;
     }
-*/
-/*    const TechDraw::DrawViewPart *refObj = dim->getViewPart();
+
+    const TechDraw::DrawViewPart *refObj = balloon->getViewPart();
     if(!refObj->hasGeometry()) {                                       //nothing to draw yet (restoring)
-        datumLabel->hide();
+        //datumLabel->hide();
         hide();
         return;
-    }*/
-/*
+    }
+
     auto vp = static_cast<ViewProviderBalloon*>(getViewProvider(getViewObject()));
     if ( vp == nullptr ) {
         return;
+    }
+
+    m_lineWidth = Rez::guiX(vp->LineWidth.getValue());
+
+    QPainterPath dLinePath;                                                 //radius dimension line path
+    dLinePath.moveTo(0, 0);
+    dLinePath.lineTo(100, 100);
+    dLinePath.lineTo(200, 100);
+
+    dimLines->setPath(dLinePath);
+
+    // redraw the Dimension and the parent View
+    if (hasHover && !isSelected()) {
+        aHead1->setPrettyPre();
+        dimLines->setPrettyPre();
+    } else if (isSelected()) {
+        aHead1->setPrettySel();
+        dimLines->setPrettySel();
+    } else {
+        aHead1->setPrettyNormal();
+        dimLines->setPrettyNormal();
     }
 
     update();
@@ -134,7 +182,7 @@ void QGIViewBalloon::draw()
     } else {
         Base::Console().Log("INFO - QGIVD::draw - no parent to update\n");
     }
-*/
+
 }
 
 void QGIViewBalloon::drawBorder(void)
@@ -175,17 +223,15 @@ void QGIViewBalloon::paint ( QPainter * painter, const QStyleOptionGraphicsItem 
 
 void QGIViewBalloon::setSvgPens(void)
 {
-   /* double svgLineFactor = 3.0;                     //magic number.  should be a setting somewhere.
+    double svgLineFactor = 3.0;                     //magic number.  should be a setting somewhere.
     dimLines->setWidth(m_lineWidth/svgLineFactor);
     aHead1->setWidth(aHead1->getWidth()/svgLineFactor);
-    aHead2->setWidth(aHead2->getWidth()/svgLineFactor);*/
 }
 
 void QGIViewBalloon::setPens(void)
 {
-   /* dimLines->setWidth(m_lineWidth);
+    dimLines->setWidth(m_lineWidth);
     aHead1->setWidth(m_lineWidth);
-    aHead2->setWidth(m_lineWidth);*/
 }
 
 QColor QGIViewBalloon::getNormalColor()

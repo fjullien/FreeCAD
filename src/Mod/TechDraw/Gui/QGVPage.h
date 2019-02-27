@@ -83,7 +83,7 @@ public:
     QGIView* getQGIVByName(std::string name);
     QGIView* findParent(QGIView *) const;
 
-    void addBalloonToParent(QGIViewBalloon* dim, QGIView* parent);
+    void addBalloonToParent(QGIViewBalloon* balloon, QGIView* parent);
     void addDimToParent(QGIViewDimension* dim, QGIView* parent);
 //    const std::vector<QGIView *> & getViews() const { return views; }    //only used in MDIVP
     std::vector<QGIView *> getViews() const;   //only used in MDIVP

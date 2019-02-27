@@ -46,6 +46,7 @@ class AOC;
 namespace TechDrawGui
 {
 class QGIArrow;
+class QGIDimLines;
 class QGIViewBalloon;
 
 //*******************************************************************
@@ -64,7 +65,7 @@ public:
     int type() const override { return Type;}
 
     virtual void drawBorder() override;
-    //virtual void updateView(bool update = false) override;
+    virtual void updateView(bool update = false) override;
     virtual void paint( QPainter * painter,
                         const QStyleOptionGraphicsItem * option,
                         QWidget * widget = 0 ) override;
@@ -74,8 +75,8 @@ public:
 public Q_SLOTS:
     //void datumLabelDragged(void);
     //void datumLabelDragFinished(void);
-    //void select(bool state);
-    //void hover(bool state);
+    void select(bool state);
+    void hover(bool state);
     //void updateDim(bool obtuse = false);
 
 protected:
@@ -93,7 +94,6 @@ protected:
     //QGIDatumLabel* datumLabel;                                         //dimension text
     QGIDimLines* dimLines;                                       //dimension lines + extension lines
     QGIArrow* aHead1;
-    QGIArrow* aHead2;
     //QGICMark* centerMark
     double m_lineWidth;
     bool m_obtuse;

@@ -97,6 +97,22 @@ short DrawViewBalloon::mustExecute() const
 
 }
 
+bool DrawViewBalloon::has2DReferences(void) const
+{
+    bool result = false;
+    const std::vector<App::DocumentObject*> &objects = References2D.getValues();
+    const std::vector<std::string> &SubNames         = References2D.getSubValues();
+    if (!objects.empty()) {
+        App::DocumentObject* testRef = objects.at(0);
+        if (testRef != nullptr) {
+            if (!SubNames.empty()) {
+                result = true;
+            }
+        }
+    }
+    return result;
+}
+
 DrawViewPart* DrawViewBalloon::getViewPart() const
 {
     if (References2D.getValues().empty()) {

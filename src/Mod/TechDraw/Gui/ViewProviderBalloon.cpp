@@ -108,7 +108,6 @@ std::vector<std::string> ViewProviderBalloon::getDisplayModes(void) const
 
 void ViewProviderBalloon::updateData(const App::Property* p)
 {
-    Base::Console().Log("--------> updateData\n");
 /*
     if (p == &(getViewObject()->Type)) {
         if (getViewObject()->Type.isValue("DistanceX")) {
@@ -130,7 +129,6 @@ void ViewProviderBalloon::updateData(const App::Property* p)
 
 void ViewProviderBalloon::onChanged(const App::Property* p)
 {
-	    Base::Console().Log("--------> onChanged\n");
 /*
     if ((p == &Font)  ||
         (p == &Fontsize) ||

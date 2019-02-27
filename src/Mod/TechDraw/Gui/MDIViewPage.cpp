@@ -272,7 +272,6 @@ void MDIViewPage::centerOnPage(void)
 
 bool MDIViewPage::attachView(App::DocumentObject *obj)
 {
-	Base::Console().Log("--------> MDIViewPage::attachView\n");
     auto typeId(obj->getTypeId());
 
     QGIView *qview(nullptr);

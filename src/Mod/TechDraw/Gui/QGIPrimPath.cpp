@@ -227,3 +227,12 @@ Base::Reference<ParameterGrp> QGIPrimPath::getParmGroup()
         .GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Mod/TechDraw/Colors");
     return hGrp;
 }
+
+void QGIPrimPath::mousePressEvent(QGraphicsSceneMouseEvent * event)
+{
+    Base::Console().Log("!!  QGIPrimPath::mousePressEvent  !!!!!!\n");
+    
+    Base::Console().Log("X = %f\n", event->pos().x());
+    Base::Console().Log("Y = %f\n", event->pos().y());
+    QGraphicsItem::mousePressEvent(event);
+}

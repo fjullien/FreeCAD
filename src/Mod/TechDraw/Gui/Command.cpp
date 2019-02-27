@@ -753,7 +753,6 @@ void CmdTechDrawNewBalloon::activated(int iMsg)
     for (; itSel != selection.end(); itSel++)  {
         if ((*itSel).getObject()->isDerivedFrom(TechDraw::DrawViewPart::getClassTypeId())) {
             objFeat = static_cast<TechDraw::DrawViewPart*> ((*itSel).getObject());
-            SubNames = (*itSel).getSubNames();
         }
     }
     TechDraw::DrawPage* page = objFeat->findParentPage();
@@ -773,7 +772,7 @@ void CmdTechDrawNewBalloon::activated(int iMsg)
     std::vector<std::string> subs;
 
     objs.push_back(objFeat);
-    subs.push_back("dummy");
+    subs.push_back(FeatName.c_str());
 
     balloon->References2D.setValues(objs, subs);
 

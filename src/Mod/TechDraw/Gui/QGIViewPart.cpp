@@ -296,7 +296,6 @@ QPainterPath QGIViewPart::geomToPainterPath(TechDrawGeometry::BaseGeom *baseGeom
 
 void QGIViewPart::updateView(bool update)
 {
-	Base::Console().Log("-------> QGIViewPart::updateView\n");
     auto start = std::chrono::high_resolution_clock::now();
     auto viewPart( dynamic_cast<TechDraw::DrawViewPart *>(getViewObject()) );
     if( viewPart == nullptr ) {
@@ -1011,4 +1010,13 @@ bool QGIViewPart::getFaceEdgesPref(void)
         .GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Mod/TechDraw/General");
     result = hGrp->GetBool("DrawFaceEdges", 0l);
     return result;
+}
+
+void QGIViewPart::mousePressEvent(QGraphicsSceneMouseEvent * event)
+{
+    Base::Console().Log("!! MOUSE PRESSED ViewPart!!!!!!\n");
+    
+    Base::Console().Log("X = %f\n", event->pos().x());
+    Base::Console().Log("Y = %f\n", event->pos().y());
+    QGraphicsItem::mousePressEvent(event);
 }
