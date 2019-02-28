@@ -48,10 +48,9 @@ public:
     DrawViewBalloon();
     virtual ~DrawViewBalloon();
 
-    App::PropertyLinkSubList       References2D;
+    App::PropertyLink       sourceView;
 
     short mustExecute() const;
-    bool has2DReferences(void) const;
 
     DrawViewPart* getViewPart() const;
 

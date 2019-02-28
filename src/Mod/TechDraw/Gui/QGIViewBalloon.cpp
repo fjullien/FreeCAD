@@ -135,8 +135,7 @@ void QGIViewBalloon::draw()
 
     TechDraw::DrawViewBalloon *balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject());
     if((!balloon) ||                                                       //nothing to draw, don't try
-       (!balloon->isDerivedFrom(TechDraw::DrawViewBalloon::getClassTypeId())) ||
-       (!balloon->has2DReferences()) ) {
+       (!balloon->isDerivedFrom(TechDraw::DrawViewBalloon::getClassTypeId()))) {
         //datumLabel->hide();
         hide();
         return;

@@ -70,10 +70,9 @@ PROPERTY_SOURCE(TechDraw::DrawViewBalloon, TechDraw::DrawView)
 
 DrawViewBalloon::DrawViewBalloon(void)
 {
-    ADD_PROPERTY_TYPE(References2D,(0,0),"",(App::PropertyType)(App::Prop_None),"Projected Geometry References");
-    References2D.setScope(App::LinkScope::Global);
-    References2D.setStatus(App::Property::Hidden,true);
-
+    ADD_PROPERTY_TYPE(sourceView,(0),"",(App::PropertyType)(App::Prop_None),"Source view for balloon");
+    sourceView.setScope(App::LinkScope::Global);
+    sourceView.setStatus(App::Property::Hidden,true);
 }
 
 DrawViewBalloon::~DrawViewBalloon()
@@ -97,28 +96,11 @@ short DrawViewBalloon::mustExecute() const
 
 }
 
-bool DrawViewBalloon::has2DReferences(void) const
-{
-    bool result = false;
-    const std::vector<App::DocumentObject*> &objects = References2D.getValues();
-    const std::vector<std::string> &SubNames         = References2D.getSubValues();
-    if (!objects.empty()) {
-        App::DocumentObject* testRef = objects.at(0);
-        if (testRef != nullptr) {
-            if (!SubNames.empty()) {
-                result = true;
-            }
-        }
-    }
-    return result;
-}
-
 DrawViewPart* DrawViewBalloon::getViewPart() const
 {
-    if (References2D.getValues().empty()) {
-        return nullptr;
-    }
-    return dynamic_cast<TechDraw::DrawViewPart * >(References2D.getValues().at(0));
+    App::DocumentObject* obj = sourceView.getValue();
+    DrawViewPart* result = dynamic_cast<DrawViewPart*>(obj);
+    return result;
 }
 
 App::DocumentObjectExecReturn *DrawViewBalloon::execute(void)

@@ -746,14 +746,9 @@ void CmdTechDrawNewBalloon::activated(int iMsg)
     std::string FeatName = getUniqueObjectName("Balloon");
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
-    std::vector<std::string> SubNames;
-
-    std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
-    for (; itSel != selection.end(); itSel++)  {
-        if ((*itSel).getObject()->isDerivedFrom(TechDraw::DrawViewPart::getClassTypeId())) {
-            objFeat = static_cast<TechDraw::DrawViewPart*> ((*itSel).getObject());
-        }
+    auto objFeat( dynamic_cast<TechDraw::DrawViewPart *>(selection[0].getObject()) );
+    if( objFeat == nullptr ) {
+        return;
     }
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
@@ -767,14 +762,8 @@ void CmdTechDrawNewBalloon::activated(int iMsg)
     if (!balloon) {
         throw Base::TypeError("CmdTechDrawNewBalloon - balloon not found\n");
     }
-    
-    std::vector<App::DocumentObject *> objs;
-    std::vector<std::string> subs;
 
-    objs.push_back(objFeat);
-    subs.push_back(FeatName.c_str());
-
-    balloon->References2D.setValues(objs, subs);
+    balloon->sourceView.setValue(objFeat);
 
     //updateActive();
 

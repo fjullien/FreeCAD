@@ -494,13 +494,12 @@ QGIView * QGVPage::findParent(QGIView *view) const
     balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(myView);
 
     if(balloon) {
-        std::vector<App::DocumentObject *> objs = balloon->References2D.getValues();
+        App::DocumentObject* obj = balloon->sourceView.getValue();
 
-        if(objs.size() > 0) {
-            std::vector<App::DocumentObject *> objs = balloon->References2D.getValues();
+        if(obj) {
             // Attach the dimension to the first object's group
             for(std::vector<QGIView *>::const_iterator it = qviews.begin(); it != qviews.end(); ++it) {
-                if(strcmp((*it)->getViewName(), objs.at(0)->getNameInDocument()) == 0) {
+                if(strcmp((*it)->getViewName(), obj->getNameInDocument()) == 0) {
                     return *it;
                 }
             }
