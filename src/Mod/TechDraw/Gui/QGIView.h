@@ -54,6 +54,8 @@ public:
     QGIView();
     virtual ~QGIView() = default;
 
+    //QGIView *parent;
+
     enum {Type = QGraphicsItem::UserType + 101};
     int type() const override { return Type;}
     virtual QRectF boundingRect() const override;
@@ -100,6 +102,8 @@ public:
     
     static Gui::ViewProvider* getViewProvider(App::DocumentObject* obj);
     MDIViewPage* getMDIViewPage(void) const;
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    boost::signals2::signal<void (QGIView*)> signalSelectPoint;
 
 protected:
     QGIView* getQGIVByName(std::string name);
@@ -107,7 +111,6 @@ protected:
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
     // Mouse handling
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     // Preselection events:
     virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
     virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;

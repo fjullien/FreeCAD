@@ -1012,11 +1012,3 @@ bool QGIViewPart::getFaceEdgesPref(void)
     return result;
 }
 
-void QGIViewPart::mousePressEvent(QGraphicsSceneMouseEvent * event)
-{
-    Base::Console().Log("!! MOUSE PRESSED ViewPart!!!!!!\n");
-    
-    Base::Console().Log("X = %f\n", event->pos().x());
-    Base::Console().Log("Y = %f\n", event->pos().y());
-    QGraphicsItem::mousePressEvent(event);
-}

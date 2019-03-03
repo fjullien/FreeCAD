@@ -37,6 +37,7 @@
 
 #include "QGIPrimPath.h"
 #include "QGIView.h"
+#include "QGIViewPart.h"
 
 using namespace TechDrawGui;
 
@@ -230,9 +231,10 @@ Base::Reference<ParameterGrp> QGIPrimPath::getParmGroup()
 
 void QGIPrimPath::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
-    Base::Console().Log("!!  QGIPrimPath::mousePressEvent  !!!!!!\n");
-    
-    Base::Console().Log("X = %f\n", event->pos().x());
-    Base::Console().Log("Y = %f\n", event->pos().y());
-    QGraphicsItem::mousePressEvent(event);
+    QGIView *parent;
+    QGraphicsItem* qparent = parentItem();
+    if (qparent != nullptr) {
+        parent = dynamic_cast<QGIView *> (qparent);
+        parent->mousePressEvent(event);
+    }
 }

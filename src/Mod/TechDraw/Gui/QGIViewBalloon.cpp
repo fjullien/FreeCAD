@@ -61,6 +61,7 @@
 #include "QGIViewBalloon.h"
 #include "ViewProviderBalloon.h"
 #include "DrawGuiUtil.h"
+#include "QGIViewPart.h"
 
 //TODO: hide the Qt coord system (+y down).  
 
@@ -86,9 +87,17 @@ QGIViewBalloon::QGIViewBalloon() :
     dimLines->setZValue(ZVALUE::DIMENSION);
     dimLines->setStyle(Qt::SolidLine);
 
+    originPosSet = false;
+
     toggleBorder(false);
     setZValue(ZVALUE::DIMENSION);                    //note: this won't paint dimensions over another View if it stacks
                                                      //above this Dimension's parent view.   need Layers?
+
+}
+
+void QGIViewBalloon::parentViewMousePressed(QGIView *view)
+{
+    Base::Console().Message("-------- parentViewMousePressed\n");
 }
 
 
@@ -129,6 +138,18 @@ void QGIViewBalloon::draw()
     if (!isVisible()) {                                                //should this be controlled by parent ViewPart?
         return;
     }
+
+    //if (originPosSet) {
+        //if (!connectedToSignal) {
+            /*QGIViewPart *parent;
+            QGraphicsItem* qparent = parentItem();
+            if (qparent != nullptr) {
+                parent = dynamic_cast<QGIViewPart *> (qparent);
+                Base::Console().Message("------------ Balloon parent: %s\n", parent->getViewName());
+            }*/
+       // }
+  //      return;
+  //  }
 
     /*datumLabel->show();*/
     show();

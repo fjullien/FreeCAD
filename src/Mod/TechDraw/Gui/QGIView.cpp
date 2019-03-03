@@ -179,6 +179,13 @@ QVariant QGIView::itemChange(GraphicsItemChange change, const QVariant &value)
 
 void QGIView::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
+    Base::Console().Log("!! ---------- QGIView::mousePressEvent!!!!!!\n");
+
+    signalSelectPoint(this);
+
+    Base::Console().Log("X = %f\n", event->pos().x());
+    Base::Console().Log("Y = %f\n", event->pos().y());
+
     if(m_locked) {
         event->ignore();
     } else {

@@ -32,6 +32,7 @@
 #include <QFont>
 #include <Base/Vector3D.h>
 #include "QGIView.h"
+#include "QGIViewPart.h"
 #include "QGCustomText.h"
 
 namespace TechDraw {
@@ -71,6 +72,8 @@ public:
                         QWidget * widget = 0 ) override;
     virtual QColor getNormalColor(void) override;
     QString getLabelText(void);
+    bool originPosSet;
+    static void parentViewMousePressed(QGIView *view);
 
 public Q_SLOTS:
     //void datumLabelDragged(void);
