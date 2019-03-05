@@ -34,6 +34,7 @@
 #include "QGIView.h"
 #include "QGIViewPart.h"
 #include "QGCustomText.h"
+#include "QGIViewDimension.h"
 
 namespace TechDraw {
 class DrawViewBalloon;
@@ -75,11 +76,11 @@ public:
     void connect(QGIView *parent);
 
 public Q_SLOTS:
-    //void datumLabelDragged(void);
-    //void datumLabelDragFinished(void);
+    void datumLabelDragged(void);
+    void datumLabelDragFinished(void);
     void select(bool state);
     void hover(bool state);
-    //void updateDim(bool obtuse = false);
+    void updateDim(bool obtuse = false);
 
 protected:
     void draw() override;
@@ -91,7 +92,7 @@ protected:
 
 protected:
     bool hasHover;
-    //QGIDatumLabel* datumLabel;                                         //dimension text
+    QGIDatumLabel* datumLabel;                                         //dimension text
     QGIDimLines* dimLines;                                       //dimension lines + extension lines
     QGIArrow* aHead1;
     //QGICMark* centerMark

@@ -62,6 +62,7 @@
 #include "ViewProviderBalloon.h"
 #include "DrawGuiUtil.h"
 #include "QGIViewPart.h"
+#include "QGIViewDimension.h"
 
 //TODO: hide the Qt coord system (+y down).  
 
@@ -77,12 +78,18 @@ QGIViewBalloon::QGIViewBalloon() :
     setFlag(QGraphicsItem::ItemIsMovable, false);
     setCacheMode(QGraphicsItem::NoCache);
 
+    datumLabel = new QGIDatumLabel();
+    addToGroup(datumLabel);
+    datumLabel->setColor(getNormalColor());
+    datumLabel->setPrettyNormal();
+
     dimLines = new QGIDimLines();
     addToGroup(dimLines);
 
     aHead1 = new QGIArrow();
     addToGroup(aHead1);
 
+    datumLabel->setZValue(ZVALUE::DIMENSION);
     aHead1->setZValue(ZVALUE::DIMENSION);
     dimLines->setZValue(ZVALUE::DIMENSION);
     dimLines->setStyle(Qt::SolidLine);
@@ -92,6 +99,25 @@ QGIViewBalloon::QGIViewBalloon() :
     origin->setY(0.0);
 
     originPosSet = false;
+
+    datumLabel->setPosFromCenter(0, 0);
+
+    // connecting the needed slots and signals
+    QObject::connect(
+        datumLabel, SIGNAL(dragging()),
+        this  , SLOT  (datumLabelDragged()));
+
+    QObject::connect(
+        datumLabel, SIGNAL(dragFinished()),
+        this  , SLOT  (datumLabelDragFinished()));
+
+    QObject::connect(
+        datumLabel, SIGNAL(selected(bool)),
+        this  , SLOT  (select(bool)));
+
+    QObject::connect(
+        datumLabel, SIGNAL(hover(bool)),
+        this  , SLOT  (hover(bool)));
 
     toggleBorder(false);
     setZValue(ZVALUE::DIMENSION);                    //note: this won't paint dimensions over another View if it stacks
@@ -107,6 +133,7 @@ void QGIViewBalloon::connect(QGIView *parent)
 
 void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
 {
+    Q_UNUSED(view);
     //Base::Console().Message("%s::parentViewMousePressed from %s\n", this->getViewName(), view->getViewName());
 
     //Base::Console().Log("X = %f\n",pos.x());
@@ -130,9 +157,15 @@ void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *obj)
     setViewFeature(static_cast<TechDraw::DrawView *>(obj));
 
     // Set the QGIGroup Properties based on the DrawView
-   // float x = Rez::guiX(obj->X.getValue());
-    //float y = Rez::guiX(-obj->Y.getValue());
+    float x = Rez::guiX(obj->X.getValue());
+    float y = Rez::guiX(-obj->Y.getValue());
 
+    Base::Console().Log("1X = %f\n",x);
+    Base::Console().Log("1Y = %f\n",y);
+
+    datumLabel->setPosFromCenter(x, y);
+
+    updateDim();
     draw();
 }
 
@@ -151,8 +184,88 @@ void QGIViewBalloon::hover(bool state)
 void QGIViewBalloon::updateView(bool update)
 {
     Q_UNUSED(update);
+    auto dim( dynamic_cast<TechDraw::DrawViewBalloon*>(getViewObject()) );
+    if( dim == nullptr )
+        return;
+
+    auto vp = static_cast<ViewProviderBalloon*>(getViewProvider(getViewObject()));
+    if ( vp == nullptr ) {
+        return;
+    }
+
+    if (update||
+        dim->X.isTouched() ||
+        dim->Y.isTouched()) {
+        float x = Rez::guiX(dim->X.getValue());
+        float y = Rez::guiX(dim->Y.getValue());
+    Base::Console().Log("2X = %f\n",x);
+    Base::Console().Log("2Y = %f\n",y);
+        datumLabel->setPosFromCenter(x,-y);
+        updateDim();
+     }
+     else if(vp->Fontsize.isTouched() ||
+               vp->Font.isTouched()) {
+         QFont font = datumLabel->getFont();
+         font.setPointSizeF(Rez::guiX(vp->Fontsize.getValue()));
+         font.setFamily(QString::fromLatin1(vp->Font.getValue()));
+         datumLabel->setFont(font);
+         updateDim();
+    } else if (vp->LineWidth.isTouched()) {           //never happens!!
+        m_lineWidth = vp->LineWidth.getValue();
+        updateDim();
+    } else {
+        updateDim();
+    }
+
     draw();
 }
+
+void QGIViewBalloon::updateDim(bool obtuse)
+{
+    (void) obtuse;
+    const auto dim( dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject()) );
+    if( dim == nullptr ) {
+        return;
+    }
+    auto vp = static_cast<ViewProviderBalloon*>(getViewProvider(getViewObject()));
+    if ( vp == nullptr ) {
+        return;
+    }
+ 
+    QString labelText = QString::fromUtf8("TEST_ABC");
+    
+    QFont font = datumLabel->getFont();
+    font.setPointSizeF(Rez::guiX(vp->Fontsize.getValue()));
+    font.setFamily(QString::fromUtf8(vp->Font.getValue()));
+
+    datumLabel->setFont(font);
+    prepareGeometryChange();
+    datumLabel->setDimString(labelText);
+    datumLabel->setTolString();
+    datumLabel->setPosFromCenter(datumLabel->X(),datumLabel->Y());
+}
+
+void QGIViewBalloon::datumLabelDragged()
+{
+    draw();
+}
+
+void QGIViewBalloon::datumLabelDragFinished()
+{
+    auto dim( dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject()) );
+
+    if( dim == nullptr ) {
+        return;
+    }
+
+    double x = Rez::appX(datumLabel->X()),
+           y = Rez::appX(datumLabel->Y());
+    Gui::Command::openCommand("Drag Balloon");
+    Gui::Command::doCommand(Gui::Command::Doc,"App.ActiveDocument.%s.X = %f", dim->getNameInDocument(), x);
+    Gui::Command::doCommand(Gui::Command::Doc,"App.ActiveDocument.%s.Y = %f", dim->getNameInDocument(), -y);
+    Gui::Command::commitCommand();
+}
+
 
 void QGIViewBalloon::draw()
 {
@@ -163,21 +276,27 @@ void QGIViewBalloon::draw()
     if (originPosSet == false) {
         return;
     }
+/*
+    QString labelText = QString::fromUtf8("TEST88");
 
-    /*datumLabel->show();*/
+    datumLabel->setDimString(labelText);
+    Base::Console().Log("X = %f\n",datumLabel->X());
+    Base::Console().Log("Y = %f\n",datumLabel->Y());
+    datumLabel->setPosFromCenter(datumLabel->X(),datumLabel->Y());*/
+    datumLabel->show();
     show();
 
     TechDraw::DrawViewBalloon *balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject());
     if((!balloon) ||                                                       //nothing to draw, don't try
        (!balloon->isDerivedFrom(TechDraw::DrawViewBalloon::getClassTypeId()))) {
-        //datumLabel->hide();
+        datumLabel->hide();
         hide();
         return;
     }
 
     const TechDraw::DrawViewPart *refObj = balloon->getViewPart();
     if(!refObj->hasGeometry()) {                                       //nothing to draw yet (restoring)
-        //datumLabel->hide();
+        datumLabel->hide();
         hide();
         return;
     }
@@ -187,14 +306,59 @@ void QGIViewBalloon::draw()
         return;
     }
 
+    m_colNormal = getNormalColor();
+    datumLabel->setColor(m_colNormal);
+
     m_lineWidth = Rez::guiX(vp->LineWidth.getValue());
 
+        // Note Bounding Box size is not the same width or height as text (only used for finding center)
+        float bbX  = datumLabel->boundingRect().width();
+        float bbY = datumLabel->boundingRect().height();
+        datumLabel->setTransformOriginPoint(bbX / 2, bbY /2);
+        datumLabel->setRotation(0.0);                                                //label is always right side up & horizontal
+
+        double textWidth = datumLabel->getDimText()->boundingRect().width();
+        QRectF  mappedRect = mapRectFromItem(datumLabel, datumLabel->boundingRect());
+        Base::Vector3d lblCenter = Base::Vector3d(mappedRect.center().x(), mappedRect.center().y(), 0.0); 
+
+        Base::Vector3d dLineStart;
+        Base::Vector3d kinkPoint;
+        float margin = Rez::guiX(5.f);                                                //space around label
+        double kinkLength = Rez::guiX(5.0);                                //sb % of horizontal dist(lblCenter,curveCenter)???
+
+            double offset = (margin + textWidth / 2.0);
+            offset = /*(lblCenter.x < curveCenter.x) ? */offset/* : -offset*/;           //if label on left then tip is +ve (ie to right)
+            dLineStart.y = lblCenter.y;
+            dLineStart.x = lblCenter.x + offset;                                     //start at right or left of label
+            kinkLength = kinkLength;// : -kinkLength;
+            kinkPoint.y = dLineStart.y;
+            kinkPoint.x = dLineStart.x + kinkLength;
+            /*pointOnCurve = curveCenter + (kinkPoint - curveCenter).Normalize() * radius;
+            if ((kinkPoint - curveCenter).Length() < radius) {
+                dirDimLine = (curveCenter - kinkPoint).Normalize();
+            } else {
+                dirDimLine = (kinkPoint - curveCenter).Normalize();
+            }*/
+
     QPainterPath dLinePath;                                                 //radius dimension line path
-    dLinePath.moveTo(origin->x(), origin->y());
-    dLinePath.lineTo(origin->x() + 100, origin->y() + 100);
-    dLinePath.lineTo(origin->x() + 200, origin->y() + 100);
+    dLinePath.moveTo(dLineStart.x, dLineStart.y);
+    dLinePath.lineTo(kinkPoint.x, kinkPoint.y);
+    dLinePath.lineTo(origin->x(), origin->y());
 
     dimLines->setPath(dLinePath);
+
+    aHead1->setStyle(QGIArrow::getPrefArrowStyle());
+    aHead1->setSize(QGIArrow::getPrefArrowSize());
+    aHead1->draw();
+
+    //Base::Vector3d ar1Pos = pointOnCurve;
+    //Base::Vector3d dirArrowLine = (pointOnCurve - kinkPoint).Normalize();
+    //float arAngle = atan2(dirArrowLine.y, dirArrowLine.x) * 180 / M_PI;
+
+    aHead1->setPos(origin->x(), origin->y());
+    aHead1->setRotation(0);
+    aHead1->show();
+
 
     // redraw the Dimension and the parent View
     if (hasHover && !isSelected()) {
@@ -226,14 +390,14 @@ void QGIViewBalloon::drawBorder(void)
 
 QVariant QGIViewBalloon::itemChange(GraphicsItemChange change, const QVariant &value)
 {
-  /* if (change == ItemSelectedHasChanged && scene()) {
+   if (change == ItemSelectedHasChanged && scene()) {
         if(isSelected()) {
             datumLabel->setSelected(true);
         } else {
             datumLabel->setSelected(false);
         }
         draw();
-    }*/
+    }
     return QGIView::itemChange(change, value);
 }
 
