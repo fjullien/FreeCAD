@@ -87,6 +87,10 @@ QGIViewBalloon::QGIViewBalloon() :
     dimLines->setZValue(ZVALUE::DIMENSION);
     dimLines->setStyle(Qt::SolidLine);
 
+    origin = new QPointF;
+    origin->setX(0.0);
+    origin->setY(0.0);
+
     originPosSet = false;
 
     toggleBorder(false);
@@ -95,9 +99,26 @@ QGIViewBalloon::QGIViewBalloon() :
 
 }
 
-void QGIViewBalloon::parentViewMousePressed(QGIView *view)
+void QGIViewBalloon::connect(QGIView *parent)
 {
-    Base::Console().Message("-------- parentViewMousePressed\n");
+        auto bnd = boost::bind(&QGIViewBalloon::parentViewMousePressed, this, _1, _2);
+        parent->signalSelectPoint.connect(bnd);
+}
+
+void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
+{
+    //Base::Console().Message("%s::parentViewMousePressed from %s\n", this->getViewName(), view->getViewName());
+
+    //Base::Console().Log("X = %f\n",pos.x());
+    //Base::Console().Log("Y = %f\n",pos.y());
+
+    if (originPosSet == false) {
+        origin->setX(pos.x());
+        origin->setY(pos.y());
+        originPosSet = true;
+    }
+
+    draw();
 }
 
 
@@ -139,17 +160,9 @@ void QGIViewBalloon::draw()
         return;
     }
 
-    //if (originPosSet) {
-        //if (!connectedToSignal) {
-            /*QGIViewPart *parent;
-            QGraphicsItem* qparent = parentItem();
-            if (qparent != nullptr) {
-                parent = dynamic_cast<QGIViewPart *> (qparent);
-                Base::Console().Message("------------ Balloon parent: %s\n", parent->getViewName());
-            }*/
-       // }
-  //      return;
-  //  }
+    if (originPosSet == false) {
+        return;
+    }
 
     /*datumLabel->show();*/
     show();
@@ -177,9 +190,9 @@ void QGIViewBalloon::draw()
     m_lineWidth = Rez::guiX(vp->LineWidth.getValue());
 
     QPainterPath dLinePath;                                                 //radius dimension line path
-    dLinePath.moveTo(0, 0);
-    dLinePath.lineTo(100, 100);
-    dLinePath.lineTo(200, 100);
+    dLinePath.moveTo(origin->x(), origin->y());
+    dLinePath.lineTo(origin->x() + 100, origin->y() + 100);
+    dLinePath.lineTo(origin->x() + 200, origin->y() + 100);
 
     dimLines->setPath(dLinePath);
 

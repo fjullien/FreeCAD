@@ -103,7 +103,7 @@ public:
     static Gui::ViewProvider* getViewProvider(App::DocumentObject* obj);
     MDIViewPage* getMDIViewPage(void) const;
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-    boost::signals2::signal<void (QGIView*)> signalSelectPoint;
+    boost::signals2::signal<void (QGIView*, QPointF)> signalSelectPoint;
 
 protected:
     QGIView* getQGIVByName(std::string name);

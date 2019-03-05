@@ -386,7 +386,7 @@ QGIView * QGVPage::addViewBalloon(TechDraw::DrawViewBalloon *balloon)
     parent = findParent(balloonGroup);
 
     if(parent) {
-        parent->signalSelectPoint.connect(balloonGroup->parentViewMousePressed);
+        balloonGroup->connect(parent);
         addBalloonToParent(balloonGroup,parent);
     }
 

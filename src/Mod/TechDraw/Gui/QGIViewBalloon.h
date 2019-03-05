@@ -72,8 +72,7 @@ public:
                         QWidget * widget = 0 ) override;
     virtual QColor getNormalColor(void) override;
     QString getLabelText(void);
-    bool originPosSet;
-    static void parentViewMousePressed(QGIView *view);
+    void connect(QGIView *parent);
 
 public Q_SLOTS:
     //void datumLabelDragged(void);
@@ -100,6 +99,9 @@ protected:
     //QGICMark* centerMark
     double m_lineWidth;
     bool m_obtuse;
+    void parentViewMousePressed(QGIView *view, QPointF pos);
+    QPointF *origin;
+    bool originPosSet;
 };
 
 } // namespace MDIViewPageGui
