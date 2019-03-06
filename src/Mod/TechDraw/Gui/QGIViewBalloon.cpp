@@ -46,6 +46,7 @@
 #include <Base/Parameter.h>
 #include <Base/UnitsApi.h>
 #include <Gui/Command.h>
+#include <string>
 
 #include <Mod/Part/App/PartFeature.h>
 
@@ -63,6 +64,8 @@
 #include "DrawGuiUtil.h"
 #include "QGIViewPart.h"
 #include "QGIViewDimension.h"
+#include "QGVPage.h"
+#include "MDIViewPage.h"
 
 //TODO: hide the Qt coord system (+y down).  
 
@@ -136,6 +139,11 @@ void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
     Q_UNUSED(view);
     //Base::Console().Message("%s::parentViewMousePressed from %s\n", this->getViewName(), view->getViewName());
 
+    auto vp = static_cast<ViewProviderBalloon*>(getViewProvider(getViewObject()));
+    if ( vp == nullptr ) {
+        return;
+    }
+
     //Base::Console().Log("X = %f\n",pos.x());
     //Base::Console().Log("Y = %f\n",pos.y());
 
@@ -143,6 +151,24 @@ void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
         origin->setX(pos.x());
         origin->setY(pos.y());
         originPosSet = true;
+
+
+        MDIViewPage* mdi = getMDIViewPage();
+        QGVPage* page;
+        if (mdi != nullptr) {
+            page = mdi->getQGVPage();
+        }
+
+        QString labelText = QString::fromUtf8(std::to_string(page->balloonIndex++).c_str());
+
+        QFont font = datumLabel->getFont();
+        font.setPointSizeF(Rez::guiX(vp->Fontsize.getValue()));
+        font.setFamily(QString::fromUtf8(vp->Font.getValue()));
+        datumLabel->setFont(font);
+        prepareGeometryChange();
+
+        datumLabel->setPosFromCenter(pos.x() + 200, pos.y() -200);
+        datumLabel->setDimString(labelText);
     }
 
     draw();
@@ -157,7 +183,7 @@ void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *obj)
     setViewFeature(static_cast<TechDraw::DrawView *>(obj));
 
     // Set the QGIGroup Properties based on the DrawView
-    float x = Rez::guiX(obj->X.getValue());
+/*    float x = Rez::guiX(obj->X.getValue());
     float y = Rez::guiX(-obj->Y.getValue());
 
     Base::Console().Log("1X = %f\n",x);
@@ -166,7 +192,7 @@ void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *obj)
     datumLabel->setPosFromCenter(x, y);
 
     updateDim();
-    draw();
+    draw();*/
 }
 
 void QGIViewBalloon::select(bool state)
@@ -192,7 +218,7 @@ void QGIViewBalloon::updateView(bool update)
     if ( vp == nullptr ) {
         return;
     }
-
+/*
     if (update||
         dim->X.isTouched() ||
         dim->Y.isTouched()) {
@@ -216,7 +242,7 @@ void QGIViewBalloon::updateView(bool update)
     } else {
         updateDim();
     }
-
+*/
     draw();
 }
 
@@ -231,18 +257,17 @@ void QGIViewBalloon::updateDim(bool obtuse)
     if ( vp == nullptr ) {
         return;
     }
- 
-    QString labelText = QString::fromUtf8("TEST_ABC");
-    
+
+    if (originPosSet == false)
+        return;
+
     QFont font = datumLabel->getFont();
     font.setPointSizeF(Rez::guiX(vp->Fontsize.getValue()));
     font.setFamily(QString::fromUtf8(vp->Font.getValue()));
-
     datumLabel->setFont(font);
     prepareGeometryChange();
-    datumLabel->setDimString(labelText);
-    datumLabel->setTolString();
-    datumLabel->setPosFromCenter(datumLabel->X(),datumLabel->Y());
+    //datumLabel->setTolString();
+    //datumLabel->setPosFromCenter(datumLabel->X(),datumLabel->Y());
 }
 
 void QGIViewBalloon::datumLabelDragged()

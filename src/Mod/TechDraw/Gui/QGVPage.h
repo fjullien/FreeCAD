@@ -108,6 +108,8 @@ public:
     void saveSvg(QString filename);
     void postProcessXml(QTemporaryFile* tempFile, QString filename, QString pagename);
 
+    int balloonIndex;
+
 public Q_SLOTS:
     void setHighQualityAntialiasing(bool highQualityAntialiasing);
 
