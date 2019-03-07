@@ -130,7 +130,7 @@ QGVPage::QGVPage(ViewProviderPage *vp, QGraphicsScene* s, QWidget *parent)
 
     bkgBrush = new QBrush(getBackgroundColor());
 
-    balloonIndex = 0;
+    balloonIndex = 1;
 
     resetCachedContent();
 }
