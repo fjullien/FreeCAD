@@ -70,9 +70,11 @@ PROPERTY_SOURCE(TechDraw::DrawViewBalloon, TechDraw::DrawView)
 
 DrawViewBalloon::DrawViewBalloon(void)
 {
+    ADD_PROPERTY_TYPE(Text ,     (""),"",App::Prop_None,"The text to be displayed");
     ADD_PROPERTY_TYPE(sourceView,(0),"",(App::PropertyType)(App::Prop_None),"Source view for balloon");
     sourceView.setScope(App::LinkScope::Global);
     sourceView.setStatus(App::Property::Hidden,true);
+    Text.setContainer(this);
 }
 
 DrawViewBalloon::~DrawViewBalloon()
@@ -82,7 +84,7 @@ DrawViewBalloon::~DrawViewBalloon()
 
 void DrawViewBalloon::onChanged(const App::Property* prop)
 {
-
+    Base::Console().Log("-------------- DrawViewBalloon::onChanged\n");
 }
 
 void DrawViewBalloon::onDocumentRestored()

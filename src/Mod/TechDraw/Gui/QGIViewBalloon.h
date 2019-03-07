@@ -101,6 +101,7 @@ protected:
     void parentViewMousePressed(QGIView *view, QPointF pos);
     QPointF *origin;
     bool originPosSet;
+
 };
 
 } // namespace MDIViewPageGui

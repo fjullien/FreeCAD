@@ -49,6 +49,7 @@ public:
     virtual ~DrawViewBalloon();
 
     App::PropertyLink       sourceView;
+    App::PropertyString     Text;
 
     short mustExecute() const;
 

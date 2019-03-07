@@ -144,6 +144,10 @@ void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
         return;
     }
 
+    auto balloon( dynamic_cast<TechDraw::DrawViewBalloon*>(getViewObject()) );
+    if( balloon == nullptr )
+        return;
+
     //Base::Console().Log("X = %f\n",pos.x());
     //Base::Console().Log("Y = %f\n",pos.y());
 
@@ -159,7 +163,8 @@ void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
             page = mdi->getQGVPage();
         }
 
-        QString labelText = QString::fromUtf8(std::to_string(page->balloonIndex++).c_str());
+        QString labelText = QString::fromUtf8(std::to_string(page->balloonIndex).c_str());
+        balloon->Text.setValue(std::to_string(page->balloonIndex++).c_str());
 
         QFont font = datumLabel->getFont();
         font.setPointSizeF(Rez::guiX(vp->Fontsize.getValue()));
@@ -179,7 +184,7 @@ void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *obj)
 {
     if(obj == 0)
         return;
-
+    Base::Console().Log("-------------- QGIViewBalloon::setViewPartFeature\n");
     setViewFeature(static_cast<TechDraw::DrawView *>(obj));
 
     // Set the QGIGroup Properties based on the DrawView
@@ -210,13 +215,20 @@ void QGIViewBalloon::hover(bool state)
 void QGIViewBalloon::updateView(bool update)
 {
     Q_UNUSED(update);
-    auto dim( dynamic_cast<TechDraw::DrawViewBalloon*>(getViewObject()) );
-    if( dim == nullptr )
+    auto balloon( dynamic_cast<TechDraw::DrawViewBalloon*>(getViewObject()) );
+    if( balloon == nullptr )
         return;
 
     auto vp = static_cast<ViewProviderBalloon*>(getViewProvider(getViewObject()));
     if ( vp == nullptr ) {
         return;
+    }
+
+    Base::Console().Log("-------------- QGIViewBalloon::updateView, %d\n", update);
+
+    if (update) {
+        QString labelText = QString::fromUtf8(balloon->Text.getStrValue().data());
+        datumLabel->setDimString(labelText);
     }
 /*
     if (update||
@@ -243,6 +255,7 @@ void QGIViewBalloon::updateView(bool update)
         updateDim();
     }
 */
+    updateDim();
     draw();
 }
 
