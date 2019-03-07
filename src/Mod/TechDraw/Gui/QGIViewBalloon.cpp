@@ -301,13 +301,7 @@ void QGIViewBalloon::draw()
     if (originPosSet == false) {
         return;
     }
-/*
-    QString labelText = QString::fromUtf8("TEST88");
 
-    datumLabel->setDimString(labelText);
-    Base::Console().Log("X = %f\n",datumLabel->X());
-    Base::Console().Log("Y = %f\n",datumLabel->Y());
-    datumLabel->setPosFromCenter(datumLabel->X(),datumLabel->Y());*/
     datumLabel->show();
     show();
 
@@ -336,34 +330,22 @@ void QGIViewBalloon::draw()
 
     m_lineWidth = Rez::guiX(vp->LineWidth.getValue());
 
-        // Note Bounding Box size is not the same width or height as text (only used for finding center)
-        float bbX  = datumLabel->boundingRect().width();
-        float bbY = datumLabel->boundingRect().height();
-        datumLabel->setTransformOriginPoint(bbX / 2, bbY /2);
-        datumLabel->setRotation(0.0);                                                //label is always right side up & horizontal
+    double textWidth = datumLabel->getDimText()->boundingRect().width();
+    QRectF  mappedRect = mapRectFromItem(datumLabel, datumLabel->boundingRect());
+    Base::Vector3d lblCenter = Base::Vector3d(mappedRect.center().x(), mappedRect.center().y(), 0.0);
 
-        double textWidth = datumLabel->getDimText()->boundingRect().width();
-        QRectF  mappedRect = mapRectFromItem(datumLabel, datumLabel->boundingRect());
-        Base::Vector3d lblCenter = Base::Vector3d(mappedRect.center().x(), mappedRect.center().y(), 0.0); 
+    Base::Vector3d dLineStart;
+    Base::Vector3d kinkPoint;
+    float margin = Rez::guiX(5.f);                                                //space around label
+    double kinkLength = Rez::guiX(5.0);                                //sb % of horizontal dist(lblCenter,curveCenter)???
 
-        Base::Vector3d dLineStart;
-        Base::Vector3d kinkPoint;
-        float margin = Rez::guiX(5.f);                                                //space around label
-        double kinkLength = Rez::guiX(5.0);                                //sb % of horizontal dist(lblCenter,curveCenter)???
-
-            double offset = (margin + textWidth / 2.0);
-            offset = /*(lblCenter.x < curveCenter.x) ? */offset/* : -offset*/;           //if label on left then tip is +ve (ie to right)
-            dLineStart.y = lblCenter.y;
-            dLineStart.x = lblCenter.x + offset;                                     //start at right or left of label
-            kinkLength = kinkLength;// : -kinkLength;
-            kinkPoint.y = dLineStart.y;
-            kinkPoint.x = dLineStart.x + kinkLength;
-            /*pointOnCurve = curveCenter + (kinkPoint - curveCenter).Normalize() * radius;
-            if ((kinkPoint - curveCenter).Length() < radius) {
-                dirDimLine = (curveCenter - kinkPoint).Normalize();
-            } else {
-                dirDimLine = (kinkPoint - curveCenter).Normalize();
-            }*/
+    double offset = (margin + textWidth / 2.0);
+    offset = (lblCenter.x < origin->x()) ? offset : -offset;
+    dLineStart.y = lblCenter.y;
+    dLineStart.x = lblCenter.x + offset;                                     //start at right or left of label
+    kinkLength = (lblCenter.x < origin->x()) ? kinkLength : -kinkLength;
+    kinkPoint.y = dLineStart.y;
+    kinkPoint.x = dLineStart.x + kinkLength;
 
     QPainterPath dLinePath;                                                 //radius dimension line path
     dLinePath.moveTo(dLineStart.x, dLineStart.y);
@@ -376,12 +358,12 @@ void QGIViewBalloon::draw()
     aHead1->setSize(QGIArrow::getPrefArrowSize());
     aHead1->draw();
 
-    //Base::Vector3d ar1Pos = pointOnCurve;
-    //Base::Vector3d dirArrowLine = (pointOnCurve - kinkPoint).Normalize();
-    //float arAngle = atan2(dirArrowLine.y, dirArrowLine.x) * 180 / M_PI;
+    Base::Vector3d orign(origin->x(), origin->y(), 0.0);
+    Base::Vector3d dirArrowLine = (orign - kinkPoint).Normalize();
+    float arAngle = atan2(dirArrowLine.y, dirArrowLine.x) * 180 / M_PI;
 
     aHead1->setPos(origin->x(), origin->y());
-    aHead1->setRotation(0);
+    aHead1->setRotation(arAngle);
     aHead1->show();
 
 
