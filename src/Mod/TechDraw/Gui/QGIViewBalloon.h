@@ -74,9 +74,10 @@ public:
     virtual QColor getNormalColor(void) override;
     QString getLabelText(void);
     void connect(QGIView *parent);
+    void draw_modifier(bool modifier);
 
 public Q_SLOTS:
-    void datumLabelDragged(void);
+    void datumLabelDragged(bool ctrl);
     void datumLabelDragFinished(void);
     void select(bool state);
     void hover(bool state);
@@ -100,6 +101,7 @@ protected:
     bool m_obtuse;
     void parentViewMousePressed(QGIView *view, QPointF pos);
     QPointF *origin;
+    QPointF *oldLabelCenter;
     bool originPosSet;
 
 };

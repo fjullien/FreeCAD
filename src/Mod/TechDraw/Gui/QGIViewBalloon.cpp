@@ -101,14 +101,18 @@ QGIViewBalloon::QGIViewBalloon() :
     origin->setX(0.0);
     origin->setY(0.0);
 
+    oldLabelCenter = new QPointF;
+    oldLabelCenter->setX(0.0);
+    oldLabelCenter->setY(0.0);
+
     originPosSet = false;
 
     datumLabel->setPosFromCenter(0, 0);
 
     // connecting the needed slots and signals
     QObject::connect(
-        datumLabel, SIGNAL(dragging()),
-        this  , SLOT  (datumLabelDragged()));
+        datumLabel, SIGNAL(dragging(bool)),
+        this  , SLOT  (datumLabelDragged(bool)));
 
     QObject::connect(
         datumLabel, SIGNAL(dragFinished()),
@@ -283,9 +287,9 @@ void QGIViewBalloon::updateDim(bool obtuse)
     //datumLabel->setPosFromCenter(datumLabel->X(),datumLabel->Y());
 }
 
-void QGIViewBalloon::datumLabelDragged()
+void QGIViewBalloon::datumLabelDragged(bool ctrl)
 {
-    draw();
+    draw_modifier(ctrl);
 }
 
 void QGIViewBalloon::datumLabelDragFinished()
@@ -304,8 +308,12 @@ void QGIViewBalloon::datumLabelDragFinished()
     Gui::Command::commitCommand();
 }
 
-
 void QGIViewBalloon::draw()
+{
+    draw_modifier(false);
+}
+
+void QGIViewBalloon::draw_modifier(bool modifier)
 {
     if (!isVisible()) {                                                //should this be controlled by parent ViewPart?
         return;
@@ -363,7 +371,16 @@ void QGIViewBalloon::draw()
     QPainterPath dLinePath;                                                 //radius dimension line path
     dLinePath.moveTo(dLineStart.x, dLineStart.y);
     dLinePath.lineTo(kinkPoint.x, kinkPoint.y);
+
+    if (modifier) {
+        origin->setX(origin->x() + lblCenter.x - oldLabelCenter->x());
+        origin->setY(origin->y() + lblCenter.y - oldLabelCenter->y());
+    }
+
     dLinePath.lineTo(origin->x(), origin->y());
+
+    oldLabelCenter->setX(lblCenter.x);
+    oldLabelCenter->setY(lblCenter.y);
 
     dimLines->setPath(dLinePath);
 
