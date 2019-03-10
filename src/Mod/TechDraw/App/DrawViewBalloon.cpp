@@ -72,9 +72,22 @@ DrawViewBalloon::DrawViewBalloon(void)
 {
     ADD_PROPERTY_TYPE(Text ,     (""),"",App::Prop_None,"The text to be displayed");
     ADD_PROPERTY_TYPE(sourceView,(0),"",(App::PropertyType)(App::Prop_None),"Source view for balloon");
+    ADD_PROPERTY_TYPE(originX,(0),"",(App::PropertyType)(App::Prop_None),"Ballon origin x");
+    ADD_PROPERTY_TYPE(originY,(0),"",(App::PropertyType)(App::Prop_None),"Ballon origin y");
+    ADD_PROPERTY_TYPE(originIsSet, (false), "",(App::PropertyType)(App::Prop_None),"Ballon origin is set");
+
+    originX.setStatus(App::Property::Hidden,false);
+    originY.setStatus(App::Property::Hidden,false);
+    originIsSet.setStatus(App::Property::Hidden,false);
+
     sourceView.setScope(App::LinkScope::Global);
     sourceView.setStatus(App::Property::Hidden,true);
-    Text.setContainer(this);
+    Rotation.setStatus(App::Property::Hidden,true);
+    ScaleType.setStatus(App::Property::Hidden,true);
+    Scale.setStatus(App::Property::Hidden,true);
+    Caption.setStatus(App::Property::Hidden,true);
+    X.setStatus(App::Property::Hidden,true);
+    Y.setStatus(App::Property::Hidden,true);
 }
 
 DrawViewBalloon::~DrawViewBalloon()
@@ -84,7 +97,7 @@ DrawViewBalloon::~DrawViewBalloon()
 
 void DrawViewBalloon::onChanged(const App::Property* prop)
 {
-    Base::Console().Log("-------------- DrawViewBalloon::onChanged\n");
+    DrawView::onChanged(prop);
 }
 
 void DrawViewBalloon::onDocumentRestored()
@@ -95,7 +108,24 @@ void DrawViewBalloon::onDocumentRestored()
 
 short DrawViewBalloon::mustExecute() const
 {
+    bool result = 0;
+    if (!isRestoring()) {
+        result =  Text.isTouched();
+    }
 
+    if (result) {
+        return result;
+    }
+
+    auto dvp = getViewPart();
+    if (dvp != nullptr) {
+        result = dvp->isTouched();
+    }
+    if (result) {
+        return result;
+    }
+
+    return DrawView::mustExecute();
 }
 
 DrawViewPart* DrawViewBalloon::getViewPart() const

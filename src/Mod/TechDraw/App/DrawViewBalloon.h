@@ -50,6 +50,9 @@ public:
 
     App::PropertyLink       sourceView;
     App::PropertyString     Text;
+    App::PropertyFloat      originX;
+    App::PropertyFloat      originY;
+    App::PropertyBool       originIsSet;
 
     short mustExecute() const;
 

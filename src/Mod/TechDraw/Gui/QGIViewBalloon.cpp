@@ -89,23 +89,23 @@ QGIViewBalloon::QGIViewBalloon() :
     dimLines = new QGIDimLines();
     addToGroup(dimLines);
 
+    balloonShape = new QGIDimLines();
+    addToGroup(balloonShape);
+
     aHead1 = new QGIArrow();
     addToGroup(aHead1);
 
-    datumLabel->setZValue(ZVALUE::DIMENSION);
+    datumLabel->setZValue(ZVALUE::LABEL);
     aHead1->setZValue(ZVALUE::DIMENSION);
     dimLines->setZValue(ZVALUE::DIMENSION);
     dimLines->setStyle(Qt::SolidLine);
 
-    origin = new QPointF;
-    origin->setX(0.0);
-    origin->setY(0.0);
+    balloonShape->setZValue(ZVALUE::DIMENSION);
+    balloonShape->setStyle(Qt::SolidLine);
 
     oldLabelCenter = new QPointF;
     oldLabelCenter->setX(0.0);
     oldLabelCenter->setY(0.0);
-
-    originPosSet = false;
 
     datumLabel->setPosFromCenter(0, 0);
 
@@ -134,8 +134,8 @@ QGIViewBalloon::QGIViewBalloon() :
 
 void QGIViewBalloon::connect(QGIView *parent)
 {
-        auto bnd = boost::bind(&QGIViewBalloon::parentViewMousePressed, this, _1, _2);
-        parent->signalSelectPoint.connect(bnd);
+    auto bnd = boost::bind(&QGIViewBalloon::parentViewMousePressed, this, _1, _2);
+    parent->signalSelectPoint.connect(bnd);
 }
 
 void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
@@ -152,14 +152,10 @@ void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
     if( balloon == nullptr )
         return;
 
-    //Base::Console().Log("X = %f\n",pos.x());
-    //Base::Console().Log("Y = %f\n",pos.y());
-
-    if (originPosSet == false) {
-        origin->setX(pos.x());
-        origin->setY(pos.y());
-        originPosSet = true;
-
+    if (balloon->originIsSet.getValue() == false) {
+        balloon->originX.setValue(pos.x());
+        balloon->originY.setValue(pos.y());
+        balloon->originIsSet.setValue(true);
 
         MDIViewPage* mdi = getMDIViewPage();
         QGVPage* page;
@@ -184,24 +180,24 @@ void QGIViewBalloon::parentViewMousePressed(QGIView *view, QPointF pos)
 }
 
 
-void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *obj)
+void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *balloon)
 {
-    if(obj == 0)
+    if(balloon == 0)
         return;
-    Base::Console().Log("-------------- QGIViewBalloon::setViewPartFeature\n");
-    setViewFeature(static_cast<TechDraw::DrawView *>(obj));
 
-    // Set the QGIGroup Properties based on the DrawView
-/*    float x = Rez::guiX(obj->X.getValue());
-    float y = Rez::guiX(-obj->Y.getValue());
+    setViewFeature(static_cast<TechDraw::DrawView *>(balloon));
 
-    Base::Console().Log("1X = %f\n",x);
-    Base::Console().Log("1Y = %f\n",y);
+    float x = Rez::guiX(balloon->X.getValue());
+    float y = Rez::guiX(-balloon->Y.getValue());
 
     datumLabel->setPosFromCenter(x, y);
 
+    QString labelText = QString::fromUtf8(balloon->Text.getStrValue().data());
+    datumLabel->setDimString(labelText);
+
     updateDim();
-    draw();*/
+
+    draw();
 }
 
 void QGIViewBalloon::select(bool state)
@@ -227,8 +223,6 @@ void QGIViewBalloon::updateView(bool update)
     if ( vp == nullptr ) {
         return;
     }
-
-    Base::Console().Log("-------------- QGIViewBalloon::updateView, %d\n", update);
 
     if (update) {
         QString labelText = QString::fromUtf8(balloon->Text.getStrValue().data());
@@ -266,8 +260,8 @@ void QGIViewBalloon::updateView(bool update)
 void QGIViewBalloon::updateDim(bool obtuse)
 {
     (void) obtuse;
-    const auto dim( dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject()) );
-    if( dim == nullptr ) {
+    const auto balloon( dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject()) );
+    if( balloon == nullptr ) {
         return;
     }
     auto vp = static_cast<ViewProviderBalloon*>(getViewProvider(getViewObject()));
@@ -275,14 +269,14 @@ void QGIViewBalloon::updateDim(bool obtuse)
         return;
     }
 
-    if (originPosSet == false)
+    if (balloon->originIsSet.getValue() == false)
         return;
 
     QFont font = datumLabel->getFont();
     font.setPointSizeF(Rez::guiX(vp->Fontsize.getValue()));
     font.setFamily(QString::fromUtf8(vp->Font.getValue()));
     datumLabel->setFont(font);
-    prepareGeometryChange();
+    //prepareGeometryChange();
     //datumLabel->setTolString();
     //datumLabel->setPosFromCenter(datumLabel->X(),datumLabel->Y());
 }
@@ -319,13 +313,6 @@ void QGIViewBalloon::draw_modifier(bool modifier)
         return;
     }
 
-    if (originPosSet == false) {
-        return;
-    }
-
-    datumLabel->show();
-    show();
-
     TechDraw::DrawViewBalloon *balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(getViewObject());
     if((!balloon) ||                                                       //nothing to draw, don't try
        (!balloon->isDerivedFrom(TechDraw::DrawViewBalloon::getClassTypeId()))) {
@@ -333,6 +320,13 @@ void QGIViewBalloon::draw_modifier(bool modifier)
         hide();
         return;
     }
+
+    if (balloon->originIsSet.getValue() == false) {
+        return;
+    }
+
+    datumLabel->show();
+    show();
 
     const TechDraw::DrawViewPart *refObj = balloon->getViewPart();
     if(!refObj->hasGeometry()) {                                       //nothing to draw yet (restoring)
@@ -352,19 +346,34 @@ void QGIViewBalloon::draw_modifier(bool modifier)
     m_lineWidth = Rez::guiX(vp->LineWidth.getValue());
 
     double textWidth = datumLabel->getDimText()->boundingRect().width();
+    double textHeight = datumLabel->getDimText()->boundingRect().height();
     QRectF  mappedRect = mapRectFromItem(datumLabel, datumLabel->boundingRect());
     Base::Vector3d lblCenter = Base::Vector3d(mappedRect.center().x(), mappedRect.center().y(), 0.0);
 
+    if (balloon->isLocked()) {
+        lblCenter.x = (oldLabelCenter->x());
+        lblCenter.y = (oldLabelCenter->y());
+        datumLabel->setFlag(QGraphicsItem::ItemIsMovable, false);
+    } else
+        datumLabel->setFlag(QGraphicsItem::ItemIsMovable, true);
+
     Base::Vector3d dLineStart;
     Base::Vector3d kinkPoint;
-    float margin = Rez::guiX(5.f);                                                //space around label
     double kinkLength = Rez::guiX(5.0);                                //sb % of horizontal dist(lblCenter,curveCenter)???
 
-    double offset = (margin + textWidth / 2.0);
-    offset = (lblCenter.x < origin->x()) ? offset : -offset;
+    float orginX = balloon->originX.getValue();
+    float orginY = balloon->originY.getValue();
+
+    QPainterPath balloonPath;
+    double ballonRadius = sqrt(pow((textHeight / 2.0), 2) + pow((textWidth / 2.0), 2));
+    balloonPath.moveTo(lblCenter.x, lblCenter.y);
+    balloonPath.addEllipse(lblCenter.x - ballonRadius,lblCenter.y - ballonRadius, ballonRadius * 2, ballonRadius * 2);
+
+    double offset = ballonRadius;
+    offset = (lblCenter.x < orginX) ? offset : -offset;
     dLineStart.y = lblCenter.y;
     dLineStart.x = lblCenter.x + offset;                                     //start at right or left of label
-    kinkLength = (lblCenter.x < origin->x()) ? kinkLength : -kinkLength;
+    kinkLength = (lblCenter.x < orginX) ? kinkLength : -kinkLength;
     kinkPoint.y = dLineStart.y;
     kinkPoint.x = dLineStart.x + kinkLength;
 
@@ -373,40 +382,46 @@ void QGIViewBalloon::draw_modifier(bool modifier)
     dLinePath.lineTo(kinkPoint.x, kinkPoint.y);
 
     if (modifier) {
-        origin->setX(origin->x() + lblCenter.x - oldLabelCenter->x());
-        origin->setY(origin->y() + lblCenter.y - oldLabelCenter->y());
+        balloon->originX.setValue(orginX + lblCenter.x - oldLabelCenter->x());
+        balloon->originY.setValue(orginY + lblCenter.y - oldLabelCenter->y());
     }
 
-    dLinePath.lineTo(origin->x(), origin->y());
+    orginX = balloon->originX.getValue();
+    orginY = balloon->originY.getValue();
+
+    dLinePath.lineTo(orginX, orginY);
 
     oldLabelCenter->setX(lblCenter.x);
     oldLabelCenter->setY(lblCenter.y);
 
     dimLines->setPath(dLinePath);
+    balloonShape->setPath(balloonPath);
 
     aHead1->setStyle(QGIArrow::getPrefArrowStyle());
     aHead1->setSize(QGIArrow::getPrefArrowSize());
     aHead1->draw();
 
-    Base::Vector3d orign(origin->x(), origin->y(), 0.0);
+    Base::Vector3d orign(orginX, orginY, 0.0);
     Base::Vector3d dirArrowLine = (orign - kinkPoint).Normalize();
     float arAngle = atan2(dirArrowLine.y, dirArrowLine.x) * 180 / M_PI;
 
-    aHead1->setPos(origin->x(), origin->y());
+    aHead1->setPos(orginX, orginY);
     aHead1->setRotation(arAngle);
     aHead1->show();
-
 
     // redraw the Dimension and the parent View
     if (hasHover && !isSelected()) {
         aHead1->setPrettyPre();
         dimLines->setPrettyPre();
+        balloonShape->setPrettyPre();
     } else if (isSelected()) {
         aHead1->setPrettySel();
         dimLines->setPrettySel();
+        balloonShape->setPrettySel();
     } else {
         aHead1->setPrettyNormal();
         dimLines->setPrettyNormal();
+        balloonShape->setPrettyNormal();
     }
 
     update();
@@ -459,12 +474,14 @@ void QGIViewBalloon::setSvgPens(void)
 {
     double svgLineFactor = 3.0;                     //magic number.  should be a setting somewhere.
     dimLines->setWidth(m_lineWidth/svgLineFactor);
+    balloonShape->setWidth(m_lineWidth/svgLineFactor);
     aHead1->setWidth(aHead1->getWidth()/svgLineFactor);
 }
 
 void QGIViewBalloon::setPens(void)
 {
     dimLines->setWidth(m_lineWidth);
+    balloonShape->setWidth(m_lineWidth);
     aHead1->setWidth(m_lineWidth);
 }
 
@@ -475,9 +492,9 @@ QColor QGIViewBalloon::getNormalColor()
     App::Color fcColor;
     fcColor.setPackedValue(hGrp->GetUnsigned("Color", 0x00000000));
     m_colNormal = fcColor.asValue<QColor>();
-/*
-    auto dim( dynamic_cast<TechDraw::QGIViewBalloon*>(getViewObject()) );
-    if( dim == nullptr )
+
+    auto balloon( dynamic_cast<TechDraw::DrawViewBalloon*>(getViewObject()) );
+    if( balloon == nullptr )
         return m_colNormal;
 
     auto vp = static_cast<ViewProviderBalloon*>(getViewProvider(getViewObject()));
@@ -485,7 +502,7 @@ QColor QGIViewBalloon::getNormalColor()
         return m_colNormal;
     }
 
-    m_colNormal = vp->Color.getValue().asValue<QColor>();*/
+    m_colNormal = vp->Color.getValue().asValue<QColor>();
     return m_colNormal;
 }
 

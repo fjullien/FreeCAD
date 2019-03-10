@@ -78,9 +78,6 @@ ViewProviderBalloon::ViewProviderBalloon()
     App::Color fcColor;
     fcColor.setPackedValue(hGrp->GetUnsigned("Color", 0x00000000));
     ADD_PROPERTY_TYPE(Color,(fcColor),group,App::Prop_None,"The color of the Dimension");
-
-    ADD_PROPERTY_TYPE(FlipArrowheads ,(false),group,App::Prop_None,"Reverse the normal direction of arrowheads on dimline");
-
 }
 
 ViewProviderBalloon::~ViewProviderBalloon()
@@ -108,37 +105,19 @@ std::vector<std::string> ViewProviderBalloon::getDisplayModes(void) const
 
 void ViewProviderBalloon::updateData(const App::Property* p)
 {
-/*
-    if (p == &(getViewObject()->Type)) {
-        if (getViewObject()->Type.isValue("DistanceX")) {
-            sPixmap = "TechDraw_Dimension_Horizontal";
-        } else if (getViewObject()->Type.isValue("DistanceY")) {
-            sPixmap = "TechDraw_Dimension_Vertical";
-        } else if (getViewObject()->Type.isValue("Radius")) {
-            sPixmap = "TechDraw_Dimension_Radius";
-        } else if (getViewObject()->Type.isValue("Diameter")) {
-            sPixmap = "TechDraw_Dimension_Diameter";
-        } else if (getViewObject()->Type.isValue("Angle")) {
-            sPixmap = "TechDraw_Dimension_Angle";
-        } else if (getViewObject()->Type.isValue("Angle3Pt")) {
-            sPixmap = "TechDraw_Dimension_Angle3Pt";
-        }
-    }*/
     ViewProviderDrawingView::updateData(p);
 }
 
 void ViewProviderBalloon::onChanged(const App::Property* p)
 {
-/*
     if ((p == &Font)  ||
         (p == &Fontsize) ||
-        (p == &LineWidth) ||
-        (p == &FlipArrowheads)) {
+        (p == &LineWidth)) {
         QGIView* qgiv = getQView();
         if (qgiv) {
             qgiv->updateView(true);
         }
-    }*/
+    }
     Gui::ViewProviderDocumentObject::onChanged(p);
 }
 

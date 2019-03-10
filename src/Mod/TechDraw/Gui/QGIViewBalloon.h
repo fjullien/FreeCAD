@@ -95,14 +95,13 @@ protected:
     bool hasHover;
     QGIDatumLabel* datumLabel;                                         //dimension text
     QGIDimLines* dimLines;                                       //dimension lines + extension lines
+    QGIDimLines* balloonShape;                                       //dimension lines + extension lines
     QGIArrow* aHead1;
     //QGICMark* centerMark
     double m_lineWidth;
     bool m_obtuse;
     void parentViewMousePressed(QGIView *view, QPointF pos);
-    QPointF *origin;
     QPointF *oldLabelCenter;
-    bool originPosSet;
 
 };
 
