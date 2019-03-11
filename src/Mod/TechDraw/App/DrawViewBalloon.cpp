@@ -141,7 +141,7 @@ App::DocumentObjectExecReturn *DrawViewBalloon::execute(void)
     return App::DocumentObject::execute();
 }
 /*
-PyObject *DrawViewBallon::getPyObject(void)
+PyObject *DrawViewBalloon::getPyObject(void)
 {
     if (PythonObject.is(Py::_None())) {
         // ref counter is set to 1

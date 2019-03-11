@@ -58,8 +58,8 @@ public:
 
     DrawViewPart* getViewPart() const;
 
-    //@{
-    /// recalculate the Feature
+    //virtual PyObject *getPyObject(void);
+
     virtual App::DocumentObjectExecReturn *execute(void);
     //@}
 
