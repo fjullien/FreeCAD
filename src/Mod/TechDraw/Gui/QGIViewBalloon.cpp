@@ -69,12 +69,30 @@
 #include "QGVPage.h"
 #include "MDIViewPage.h"
 
+#include "DlgBalloon.h"
+
 #define PI  3.14159
 
 //TODO: hide the Qt coord system (+y down).  
 
 using namespace TechDraw;
 using namespace TechDrawGui;
+
+QRectF QGIBalloonLabel::boundingRect() const
+{
+    return childrenBoundingRect();
+}
+
+void QGIBalloonLabel::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * event)
+{
+    DlgBalloon ui;
+    ui.setValue(parent->dvBalloon->Text.getValue());
+    if (ui.exec() == QDialog::Accepted) {
+        parent->dvBalloon->Text.setValue(ui.getValue().toUtf8().constData());
+        parent->updateView(true);
+    }
+    QGraphicsItem::mouseDoubleClickEvent(event);
+}
 
 //**************************************************************
 QGIViewBalloon::QGIViewBalloon() :
@@ -85,7 +103,9 @@ QGIViewBalloon::QGIViewBalloon() :
     setFlag(QGraphicsItem::ItemIsMovable, false);
     setCacheMode(QGraphicsItem::NoCache);
 
-    balloonLabel = new QGIDatumLabel();
+    balloonLabel = new QGIBalloonLabel();
+    balloonLabel->parent = this;
+
     addToGroup(balloonLabel);
     balloonLabel->setColor(getNormalColor());
     balloonLabel->setPrettyNormal();
