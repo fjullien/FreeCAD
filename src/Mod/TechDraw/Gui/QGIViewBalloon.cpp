@@ -86,9 +86,35 @@ QRectF QGIBalloonLabel::boundingRect() const
 void QGIBalloonLabel::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * event)
 {
     DlgBalloon ui;
+    int i = 0;
+
     ui.setValue(parent->dvBalloon->Text.getValue());
+
+    /* Populate symbol */
+    QStringList symbols;
+    while (DrawViewBalloon::balloonTypeEnums[i] != NULL) {
+        symbols << QString::fromUtf8(DrawViewBalloon::balloonTypeEnums[i++]);
+    }
+    ui.comboSymbol->addItems(symbols);
+    i = ui.comboSymbol->findText(QString::fromUtf8(parent->dvBalloon->Symbol.getValueAsString()));
+    ui.comboSymbol->setCurrentIndex(i);
+
+    /* Populate End Type */
+    QStringList endType;
+    i = 0;
+    while (DrawViewBalloon::endTypeEnums[i] != NULL) {
+        endType << QString::fromUtf8(DrawViewBalloon::endTypeEnums[i++]);
+    }
+    ui.comboEndType->addItems(endType);
+    i = ui.comboEndType->findText(QString::fromUtf8(parent->dvBalloon->EndType.getValueAsString()));
+    ui.comboEndType->setCurrentIndex(i);
+
+    /* Populate scale */
+    ui.setScale(parent->dvBalloon->SymbolScale.getValue());
+
     if (ui.exec() == QDialog::Accepted) {
         parent->dvBalloon->Text.setValue(ui.getValue().toUtf8().constData());
+        parent->dvBalloon->SymbolScale.setValue(ui.getScale());
         parent->updateView(true);
     }
     QGraphicsItem::mouseDoubleClickEvent(event);

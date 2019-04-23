@@ -55,6 +55,17 @@ QString DlgBalloon::getValue(void)
     return inputValue->text();
 }
 
+void DlgBalloon::setScale(double value)
+{
+    QString qs = QString::number(value, 'f', 2);
+    inputScale->setText(qs);
+}
+
+double DlgBalloon::getScale(void)
+{
+    return inputScale->text().toDouble();
+}
+
 void DlgBalloon::accept()
 {
     QDialog::accept();

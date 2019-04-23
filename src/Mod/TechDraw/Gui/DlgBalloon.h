@@ -41,6 +41,8 @@ public:
 
     void setValue(std::string value);
     QString getValue(void);
+    void setScale(double value);
+    double getScale(void);
 
 public Q_SLOTS:
     void accept();
