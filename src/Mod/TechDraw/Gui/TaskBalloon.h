@@ -1,4 +1,5 @@
 /***************************************************************************
+ *   Copyright (c) 2016 WandererFan <wandererfan@gmail.com>                *
  *   Copyright (c) 2019 Franck Jullien <franck.jullien@gmail.com>          *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
@@ -20,73 +21,71 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifndef GUI_TASKVIEW_TASKBALLOON_H
+#define GUI_TASKVIEW_TASKBALLOON_H
 
-#include "PreCompiled.h"
-#include <Base/Console.h>
-#include "DlgBalloon.h"
+#include <Gui/TaskView/TaskView.h>
+#include <Gui/TaskView/TaskDialog.h>
 
-using namespace TechDrawGui;
+#include <Mod/TechDraw/Gui/ui_TaskBalloon.h>
 
-DlgBalloon::DlgBalloon( QWidget *parent /* = nullptr */ ) :
-    QDialog(parent)
+#include <Mod/TechDraw/App/DrawViewPart.h>
+
+#include "QGIViewBalloon.h"
+
+class Ui_TaskBalloon;
+
+namespace TechDrawGui
 {
-    setupUi(this);
-    inputValue->setFocus();
-}
 
-void DlgBalloon::changeEvent(QEvent *e)
+class TaskBalloon : public QWidget
 {
-    if (e->type() == QEvent::LanguageChange) {
-        retranslateUi(this);
-    }
-    else {
-        QWidget::changeEvent(e);
-    }
-}
+    Q_OBJECT
 
-void DlgBalloon::setValue(std::string value)
+public:
+    TaskBalloon(QGIViewBalloon *parent);
+    ~TaskBalloon();
+
+public:
+    virtual bool accept();
+    virtual bool reject();
+
+private:
+    Ui_TaskBalloon *ui;
+    QGIViewBalloon *m_parent;
+};
+
+class TaskDlgBalloon : public Gui::TaskView::TaskDialog
 {
-    QString qs = QString::fromUtf8(value.data(), value.size());
-    inputValue->setText(qs);
-}
+    Q_OBJECT
 
-QString DlgBalloon::getValue(void)
-{
-    return inputValue->text();
-}
+public:
+    TaskDlgBalloon(QGIViewBalloon *parent);
+    ~TaskDlgBalloon();
 
-void DlgBalloon::setScale(double value)
-{
-    QString qs = QString::number(value, 'f', 2);
-    inputScale->setText(qs);
-}
+public:
+    /// is called the TaskView when the dialog is opened
+    virtual void open();
+    /// is called by the framework if an button is clicked which has no accept or reject role
+    virtual void clicked(int);
+    /// is called by the framework if the dialog is accepted (Ok)
+    virtual bool accept();
+    /// is called by the framework if the dialog is rejected (Cancel)
+    virtual bool reject();
+    /// is called by the framework if the user presses the help button
+    virtual void helpRequested() { return;}
+    virtual bool isAllowedAlterDocument(void) const
+    { return false; }
 
-double DlgBalloon::getScale(void)
-{
-    return inputScale->text().toDouble();
-}
+    void update();
 
-void DlgBalloon::accept()
-{
-    QDialog::accept();
-}
+protected:
 
-void DlgBalloon::reject()
-{
-    QDialog::reject();
-}
+private:
+    TaskBalloon * widget;
+    Gui::TaskView::TaskBox* taskbox;
+};
 
-void DlgBalloon::populateComboBox(QComboBox *box, const char **values, const char *setVal)
-{
-    QStringList symbols;
-    int i = 0;
+} //namespace TechDrawGui
 
-    while (values[i] != NULL)
-        symbols << QString::fromUtf8(values[i++]);
-
-    box->addItems(symbols);
-    i = box->findText(QString::fromUtf8(setVal));
-    box->setCurrentIndex(i);
-}
-
-#include <Mod/TechDraw/Gui/moc_DlgBalloon.cpp>
+#endif // #ifndef GUI_TASKVIEW_TASKBALLOON_H

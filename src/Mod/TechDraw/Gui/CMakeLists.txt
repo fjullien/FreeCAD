@@ -39,7 +39,7 @@ set(TechDrawGui_MOC_HDRS
     DlgTemplateField.h
     TaskSectionView.h
     TaskGeomHatch.h
-    DlgBalloon.h
+    TaskBalloon.h
 )
 
 fc_wrap_cpp(TechDrawGui_MOC_SRCS ${TechDrawGui_MOC_HDRS})
@@ -59,7 +59,7 @@ set(TechDrawGui_UIC_SRCS
     DlgTemplateField.ui
     TaskSectionView.ui
     TaskGeomHatch.ui
-    DlgBalloon.ui
+    TaskBalloon.ui
 )
 
 if(BUILD_QT5)
@@ -99,9 +99,9 @@ SET(TechDrawGui_SRCS
     TaskSectionView.ui
     TaskSectionView.cpp
     TaskSectionView.h
-    DlgBalloon.ui
-    DlgBalloon.cpp
-    DlgBalloon.h
+    TaskBalloon.ui
+    TaskBalloon.cpp
+    TaskBalloon.h
     TaskGeomHatch.ui
     TaskGeomHatch.cpp
     TaskGeomHatch.h
